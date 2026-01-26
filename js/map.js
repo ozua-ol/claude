@@ -30,7 +30,8 @@ const MapModule = (function() {
     // Callbacks
     let callbacks = {
         onFeatureClick: null,
-        onMapMove: null
+        onMapMove: null,
+        onLayerRemove: null
     };
 
     // Initialize map
@@ -242,6 +243,12 @@ const MapModule = (function() {
             map.removeLayer(layerInfo.layer);
             currentLayers.delete(layerId);
             updateLayerPanel();
+
+            // Notify via callback
+            if (callbacks.onLayerRemove) {
+                callbacks.onLayerRemove(layerId);
+            }
+
             return true;
         }
         return false;
@@ -549,6 +556,10 @@ const MapModule = (function() {
         callbacks.onMapMove = callback;
     }
 
+    function onLayerRemove(callback) {
+        callbacks.onLayerRemove = callback;
+    }
+
     // Get all layers info
     function getLayers() {
         return Array.from(currentLayers.entries()).map(([id, info]) => ({
@@ -578,6 +589,7 @@ const MapModule = (function() {
         toggleFullscreen,
         onFeatureClick,
         onMapMove,
+        onLayerRemove,
         getLayers,
         getMap,
         updateLayerPanel,

@@ -8,12 +8,133 @@ const App = (function() {
     let selectedFeatureInfo = null;
     let layerCounter = 0;
 
+    // Layer colors palette (same as AdminModule)
+    const colorPalette = [
+        '#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6',
+        '#06b6d4', '#f97316', '#ec4899', '#14b8a6', '#6366f1'
+    ];
+
+    let colorIndex = 0;
+
+    // Get next color from palette
+    function getNextColor() {
+        const color = colorPalette[colorIndex % colorPalette.length];
+        colorIndex++;
+        return color;
+    }
+
+    // Darken a hex color
+    function darkenColor(hex, percent) {
+        const num = parseInt(hex.replace('#', ''), 16);
+        const amt = Math.round(2.55 * percent);
+        const R = Math.max((num >> 16) - amt, 0);
+        const G = Math.max((num >> 8 & 0x00FF) - amt, 0);
+        const B = Math.max((num & 0x0000FF) - amt, 0);
+        return '#' + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
+    }
+
+    // Get geometry type from GeoJSON
+    function getGeometryType(geojson) {
+        if (geojson && geojson.features && geojson.features.length > 0) {
+            const firstFeature = geojson.features.find(f => f.geometry);
+            if (firstFeature) {
+                return firstFeature.geometry.type;
+            }
+        }
+        return 'Unknown';
+    }
+
+    // Save layer to localStorage (compatible with AdminModule format)
+    function saveLayerToStorage(layerData) {
+        try {
+            const data = localStorage.getItem('admin_layers');
+            let storage = data ? JSON.parse(data) : { layers: [], colorIndex: 0 };
+
+            // Convert to Map for easier lookup
+            const layersMap = new Map(storage.layers);
+
+            // Add or update layer
+            layersMap.set(layerData.id, layerData);
+
+            // Save back
+            storage.layers = Array.from(layersMap.entries());
+            storage.colorIndex = colorIndex;
+            localStorage.setItem('admin_layers', JSON.stringify(storage));
+        } catch (error) {
+            console.error('Error saving layer to storage:', error);
+        }
+    }
+
+    // Load layers from localStorage
+    function loadLayersFromStorage() {
+        try {
+            const data = localStorage.getItem('admin_layers');
+            if (!data) return;
+
+            const storage = JSON.parse(data);
+            if (!storage.layers || storage.layers.length === 0) return;
+
+            // Restore colorIndex
+            if (storage.colorIndex) {
+                colorIndex = storage.colorIndex;
+            }
+
+            // Load each layer to map
+            const layersMap = new Map(storage.layers);
+            layersMap.forEach((layer, layerId) => {
+                if (layer.geojson && layer.visible !== false) {
+                    const style = layer.style || {};
+                    MapModule.addLayer(layerId, layer.geojson, {
+                        name: layer.name,
+                        color: style.color,
+                        fillOpacity: style.fillOpacity,
+                        opacity: style.strokeOpacity,
+                        weight: style.strokeWidth,
+                        fitBounds: false // Don't zoom to each layer
+                    });
+                }
+            });
+
+            // Update layerCounter to avoid ID conflicts
+            layerCounter = layersMap.size;
+
+            console.log(`Loaded ${layersMap.size} layers from storage`);
+        } catch (error) {
+            console.error('Error loading layers from storage:', error);
+        }
+    }
+
+    // Remove layer from localStorage
+    function removeLayerFromStorage(layerId) {
+        try {
+            const data = localStorage.getItem('admin_layers');
+            if (!data) return;
+
+            const storage = JSON.parse(data);
+            if (!storage.layers) return;
+
+            // Convert to Map, remove the layer, save back
+            const layersMap = new Map(storage.layers);
+            if (layersMap.has(layerId)) {
+                layersMap.delete(layerId);
+                storage.layers = Array.from(layersMap.entries());
+                localStorage.setItem('admin_layers', JSON.stringify(storage));
+                console.log(`Removed layer ${layerId} from storage`);
+            }
+        } catch (error) {
+            console.error('Error removing layer from storage:', error);
+        }
+    }
+
     // Initialize application
     function init() {
         console.log('Initializing application...');
 
         // Initialize map
         MapModule.init('map');
+
+        // Load persisted layers from localStorage
+        loadLayersFromStorage();
 
         // Setup UI event handlers
         setupEventHandlers();
@@ -23,6 +144,7 @@ const App = (function() {
 
         // Setup map callbacks
         MapModule.onFeatureClick(onFeatureSelect);
+        MapModule.onLayerRemove(removeLayerFromStorage);
 
         // Update progress
         updateProgress();
@@ -153,15 +275,57 @@ const App = (function() {
 
             console.log('Loaded GeoPackage:', result);
 
+            const srsInfo = result.metadata ? result.metadata.srs : [];
+
             // Add each layer to the map
             for (const layer of result.layers) {
                 const geojson = GeoPackageLoader.toGeoJSON(layer);
 
                 if (geojson.features.length > 0) {
                     const layerId = `gpkg-${layerCounter++}`;
+                    const color = getNextColor();
+
+                    // Determine CRS from SRS info
+                    let crs = '4326'; // Default
+                    if (srsInfo && srsInfo.length > 0) {
+                        const layerSrs = srsInfo.find(s => s.id === layer.srsId);
+                        if (layerSrs) {
+                            if (layerSrs.orgId === 3006) crs = '3006';
+                            else if (layerSrs.orgId === 3857) crs = '3857';
+                            else if (layerSrs.orgId === 3021) crs = '3021';
+                        }
+                    }
+
+                    // Add to map
                     MapModule.addLayer(layerId, geojson, {
-                        name: layer.name
+                        name: layer.name,
+                        color: color
                     });
+
+                    // Save to localStorage (compatible with AdminModule format)
+                    const layerData = {
+                        id: layerId,
+                        name: layer.name,
+                        crs: crs,
+                        geojson: geojson,
+                        featureCount: geojson.features.length,
+                        geometryType: getGeometryType(geojson),
+                        visible: true,
+                        style: {
+                            color: color,
+                            strokeColor: darkenColor(color, 20),
+                            fillOpacity: 0.3,
+                            strokeOpacity: 0.8,
+                            strokeWidth: 2,
+                            pointRadius: 8
+                        },
+                        source: {
+                            type: 'geopackage',
+                            filename: file.name,
+                            tableName: layer.tableName
+                        }
+                    };
+                    saveLayerToStorage(layerData);
 
                     showToast(`Lager "${layer.name}" laddat med ${geojson.features.length} objekt`, 'success');
                 }
@@ -181,8 +345,34 @@ const App = (function() {
                     const geojson = JSON.parse(e.target.result);
                     const layerId = `geojson-${layerCounter++}`;
                     const name = file.name.replace(/\.(geojson|json)$/i, '');
+                    const color = getNextColor();
 
-                    MapModule.addLayer(layerId, geojson, { name });
+                    MapModule.addLayer(layerId, geojson, { name, color });
+
+                    // Save to localStorage (compatible with AdminModule format)
+                    const layerData = {
+                        id: layerId,
+                        name: name,
+                        crs: '4326', // GeoJSON is typically WGS84
+                        geojson: geojson,
+                        featureCount: geojson.features ? geojson.features.length : 0,
+                        geometryType: getGeometryType(geojson),
+                        visible: true,
+                        style: {
+                            color: color,
+                            strokeColor: darkenColor(color, 20),
+                            fillOpacity: 0.3,
+                            strokeOpacity: 0.8,
+                            strokeWidth: 2,
+                            pointRadius: 8
+                        },
+                        source: {
+                            type: 'geojson',
+                            filename: file.name
+                        }
+                    };
+                    saveLayerToStorage(layerData);
+
                     showToast(`Lager "${name}" laddat`, 'success');
                     resolve();
                 } catch (error) {
