@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lageradministration - Kartvisualisering</title>
+
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="css/admin.css" />
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <h1><i class="fas fa-cogs"></i> Lageradministration</h1>
+                <span class="subtitle">Hantera kartlager, referenssystem och färgsättning</span>
+            </div>
+            <div class="header-right">
+                <a href="index.html" class="btn btn-primary">
+                    <i class="fas fa-map"></i> Tillbaka till kartan
+                </a>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="admin-content">
+            <!-- Sidebar - Import/Export -->
+            <aside class="admin-sidebar">
+                <div class="admin-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-file-import"></i> Importera lager</h3>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-description">Ladda in kartlager från GeoPackage- eller GeoJSON-filer.</p>
+                        <button id="btn-import" class="btn btn-secondary btn-full">
+                            <i class="fas fa-upload"></i> Välj fil
+                        </button>
+                        <input type="file" id="file-input" accept=".gpkg,.geojson,.json" multiple style="display: none;" />
+                    </div>
+                </div>
+
+                <div class="admin-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-file-export"></i> Exportera konfiguration</h3>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-description">Spara aktuella lagerinställningar till en fil.</p>
+                        <button id="btn-export" class="btn btn-secondary btn-full">
+                            <i class="fas fa-download"></i> Exportera JSON
+                        </button>
+                    </div>
+                </div>
+
+                <div class="admin-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-globe"></i> Globala inställningar</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label for="default-crs">Standard referenssystem</label>
+                            <select id="default-crs" class="form-control">
+                                <option value="4326">WGS84 (EPSG:4326)</option>
+                                <option value="3006">SWEREF99 TM (EPSG:3006)</option>
+                                <option value="3857">Web Mercator (EPSG:3857)</option>
+                                <option value="3021">RT90 2.5 gon V (EPSG:3021)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="default-opacity">Standard opacitet</label>
+                            <input type="range" id="default-opacity" min="0" max="100" value="80" class="form-range" />
+                            <span id="opacity-value" class="range-value">80%</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Panel - Layer List -->
+            <main class="admin-main">
+                <div class="admin-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-layer-group"></i> Kartlager</h3>
+                        <span class="layer-count" id="layer-count">0 lager</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="layer-table-container">
+                            <table class="layer-table" id="layer-table">
+                                <thead>
+                                    <tr>
+                                        <th>Synlig</th>
+                                        <th>Namn</th>
+                                        <th>Referenssystem</th>
+                                        <th>Färg</th>
+                                        <th>Opacitet</th>
+                                        <th>Objekt</th>
+                                        <th>Åtgärder</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="layer-tbody">
+                                    <!-- Layers will be populated here -->
+                                </tbody>
+                            </table>
+                            <div class="empty-state" id="empty-state">
+                                <i class="fas fa-layer-group"></i>
+                                <p>Inga lager laddade</p>
+                                <span>Importera GeoPackage- eller GeoJSON-filer för att komma igång</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Layer Detail Panel -->
+                <div class="admin-card" id="layer-detail-panel" style="display: none;">
+                    <div class="card-header">
+                        <h3><i class="fas fa-edit"></i> Redigera lager: <span id="edit-layer-name"></span></h3>
+                        <button id="btn-close-detail" class="btn-icon">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <form id="layer-edit-form">
+                            <input type="hidden" id="edit-layer-id" />
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="edit-name">Lagernamn</label>
+                                    <input type="text" id="edit-name" class="form-control" placeholder="Ange lagernamn" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="edit-crs">Referenssystem (CRS)</label>
+                                    <select id="edit-crs" class="form-control">
+                                        <option value="4326">WGS84 (EPSG:4326)</option>
+                                        <option value="3006">SWEREF99 TM (EPSG:3006)</option>
+                                        <option value="3857">Web Mercator (EPSG:3857)</option>
+                                        <option value="3021">RT90 2.5 gon V (EPSG:3021)</option>
+                                        <option value="custom">Anpassat...</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="edit-color">Fyllnadsfärg</label>
+                                    <div class="color-picker-group">
+                                        <input type="color" id="edit-color" class="form-color" value="#3b82f6" />
+                                        <input type="text" id="edit-color-hex" class="form-control color-hex" placeholder="#3b82f6" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="edit-stroke-color">Kantlinjefärg</label>
+                                    <div class="color-picker-group">
+                                        <input type="color" id="edit-stroke-color" class="form-color" value="#1e40af" />
+                                        <input type="text" id="edit-stroke-color-hex" class="form-control color-hex" placeholder="#1e40af" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="edit-fill-opacity">Fyllnadsopacitet</label>
+                                    <input type="range" id="edit-fill-opacity" min="0" max="100" value="30" class="form-range" />
+                                    <span id="edit-fill-opacity-value" class="range-value">30%</span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="edit-stroke-opacity">Kantlinjeopacitet</label>
+                                    <input type="range" id="edit-stroke-opacity" min="0" max="100" value="80" class="form-range" />
+                                    <span id="edit-stroke-opacity-value" class="range-value">80%</span>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="edit-stroke-width">Linjetjocklek</label>
+                                    <input type="number" id="edit-stroke-width" class="form-control" min="0" max="10" step="0.5" value="2" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="edit-point-radius">Punktradie</label>
+                                    <input type="number" id="edit-point-radius" class="form-control" min="1" max="50" value="8" />
+                                </div>
+                            </div>
+
+                            <!-- Color Presets -->
+                            <div class="form-group">
+                                <label>Snabbfärger</label>
+                                <div class="color-presets" id="color-presets">
+                                    <button type="button" class="color-preset" data-color="#3b82f6" style="background-color: #3b82f6;" title="Blå"></button>
+                                    <button type="button" class="color-preset" data-color="#22c55e" style="background-color: #22c55e;" title="Grön"></button>
+                                    <button type="button" class="color-preset" data-color="#f59e0b" style="background-color: #f59e0b;" title="Orange"></button>
+                                    <button type="button" class="color-preset" data-color="#ef4444" style="background-color: #ef4444;" title="Röd"></button>
+                                    <button type="button" class="color-preset" data-color="#8b5cf6" style="background-color: #8b5cf6;" title="Lila"></button>
+                                    <button type="button" class="color-preset" data-color="#06b6d4" style="background-color: #06b6d4;" title="Cyan"></button>
+                                    <button type="button" class="color-preset" data-color="#f97316" style="background-color: #f97316;" title="Djup orange"></button>
+                                    <button type="button" class="color-preset" data-color="#ec4899" style="background-color: #ec4899;" title="Rosa"></button>
+                                    <button type="button" class="color-preset" data-color="#14b8a6" style="background-color: #14b8a6;" title="Teal"></button>
+                                    <button type="button" class="color-preset" data-color="#6366f1" style="background-color: #6366f1;" title="Indigo"></button>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="button" id="btn-reset-style" class="btn btn-secondary">
+                                    <i class="fas fa-undo"></i> Återställ
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Spara ändringar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- CRS Information -->
+                <div class="admin-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-info-circle"></i> Referenssystem (CRS) Information</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="crs-info-grid">
+                            <div class="crs-info-item">
+                                <h4>WGS84 (EPSG:4326)</h4>
+                                <p>Globalt geografiskt koordinatsystem. Används av GPS och de flesta webbtjänster. Koordinater anges i latitud/longitud (grader).</p>
+                            </div>
+                            <div class="crs-info-item">
+                                <h4>SWEREF99 TM (EPSG:3006)</h4>
+                                <p>Sveriges officiella referenssystem. Projicerat koordinatsystem med meter som enhet. Rekommenderas för svenska geodata.</p>
+                            </div>
+                            <div class="crs-info-item">
+                                <h4>Web Mercator (EPSG:3857)</h4>
+                                <p>Används av Google Maps, OpenStreetMap m.fl. Bra för webkartor men ger förvrängning vid höga latituder.</p>
+                            </div>
+                            <div class="crs-info-item">
+                                <h4>RT90 2.5 gon V (EPSG:3021)</h4>
+                                <p>Äldre svenskt koordinatsystem som fortfarande förekommer i historisk geodata. Ersatt av SWEREF99.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Status Bar -->
+        <footer class="status-bar">
+            <div class="status-left">
+                <span id="status-message">Redo</span>
+            </div>
+            <div class="status-right">
+                <span id="status-layers">0 lager</span>
+                <span id="status-modified">Inga osparade ändringar</span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <span>Bearbetar...</span>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/sql.js@1.8.0/dist/sql-wasm.js"></script>
+    <script src="js/geopackage.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>
