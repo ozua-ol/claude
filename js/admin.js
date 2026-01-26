@@ -213,32 +213,31 @@ const AdminModule = (function() {
 
     // Load GeoPackage file
     async function loadGeoPackage(file) {
-        const loader = new GeoPackageLoader();
-        await loader.loadFile(file);
+        const result = await GeoPackageLoader.loadFromFile(file);
 
-        const tables = loader.getTables();
-        const srsInfo = loader.getSrsInfo();
+        const layersList = result.layers || [];
+        const srsInfo = result.metadata ? result.metadata.srs : [];
 
-        for (const table of tables) {
-            const geojson = loader.getTableAsGeoJSON(table.name);
+        for (const layer of layersList) {
+            const geojson = GeoPackageLoader.toGeoJSON(layer);
             if (geojson && geojson.features && geojson.features.length > 0) {
-                const layerId = generateLayerId(table.name);
+                const layerId = generateLayerId(layer.name);
                 const color = getNextColor();
 
                 // Determine CRS from SRS info
                 let crs = '4326'; // Default
                 if (srsInfo && srsInfo.length > 0) {
-                    const tableSrs = srsInfo.find(s => s.id === table.srs_id);
-                    if (tableSrs) {
-                        if (tableSrs.organizationCoordSysId === 3006) crs = '3006';
-                        else if (tableSrs.organizationCoordSysId === 3857) crs = '3857';
-                        else if (tableSrs.organizationCoordSysId === 3021) crs = '3021';
+                    const layerSrs = srsInfo.find(s => s.id === layer.srsId);
+                    if (layerSrs) {
+                        if (layerSrs.orgId === 3006) crs = '3006';
+                        else if (layerSrs.orgId === 3857) crs = '3857';
+                        else if (layerSrs.orgId === 3021) crs = '3021';
                     }
                 }
 
                 layers.set(layerId, {
                     id: layerId,
-                    name: table.name,
+                    name: layer.name,
                     crs: crs,
                     geojson: geojson,
                     featureCount: geojson.features.length,
@@ -255,15 +254,13 @@ const AdminModule = (function() {
                     source: {
                         type: 'geopackage',
                         filename: file.name,
-                        tableName: table.name
+                        tableName: layer.tableName
                     }
                 });
 
-                showToast(`Lager "${table.name}" laddat (${geojson.features.length} objekt)`, 'success');
+                showToast(`Lager "${layer.name}" laddat (${geojson.features.length} objekt)`, 'success');
             }
         }
-
-        loader.close();
     }
 
     // Load GeoJSON file
