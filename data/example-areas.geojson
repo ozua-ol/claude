@@ -1,0 +1,133 @@
+{
+  "type": "FeatureCollection",
+  "name": "Exempel - Planområden",
+  "features": [
+    {
+      "type": "Feature",
+      "id": 1,
+      "properties": {
+        "namn": "Grönområde Nord",
+        "typ": "Park",
+        "area_m2": 15000,
+        "status": "Befintlig",
+        "grönytefaktor": 0.8,
+        "beskrivning": "Naturpark med inhemska arter"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[18.06, 59.33], [18.07, 59.33], [18.07, 59.335], [18.06, 59.335], [18.06, 59.33]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 2,
+      "properties": {
+        "namn": "Stadsdelspark Centrum",
+        "typ": "Stadsdelspark",
+        "area_m2": 8500,
+        "status": "Planerad",
+        "grönytefaktor": 0.65,
+        "beskrivning": "Urban park med lekplats och mötesplatser"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[18.05, 59.325], [18.055, 59.325], [18.055, 59.328], [18.05, 59.328], [18.05, 59.325]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 3,
+      "properties": {
+        "namn": "Dagvattendamm Öst",
+        "typ": "Dagvattenanläggning",
+        "area_m2": 2000,
+        "status": "Under byggnation",
+        "fördröjningskapacitet_m3": 500,
+        "beskrivning": "Öppen dagvattendamm med rening"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[18.075, 59.327], [18.078, 59.327], [18.078, 59.329], [18.075, 59.329], [18.075, 59.327]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 4,
+      "properties": {
+        "namn": "Bostadskvarter A",
+        "typ": "Bostäder",
+        "area_m2": 12000,
+        "antal_lägenheter": 150,
+        "energiklass": "A",
+        "solceller": true,
+        "beskrivning": "Flerbostadshus med hög energistandard"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[18.062, 59.322], [18.068, 59.322], [18.068, 59.326], [18.062, 59.326], [18.062, 59.322]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 5,
+      "properties": {
+        "namn": "Cykelstråk Huvudled",
+        "typ": "Cykelväg",
+        "längd_m": 1200,
+        "bredd_m": 3.5,
+        "belysning": true,
+        "beskrivning": "Separerad cykelbana med god standard"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[18.05, 59.32], [18.055, 59.323], [18.06, 59.325], [18.07, 59.33], [18.08, 59.335]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 6,
+      "properties": {
+        "namn": "Kollektivtrafikhållplats Centrum",
+        "typ": "Hållplats",
+        "linjer": "Buss 1, 5, 12",
+        "tillgänglighetsanpassad": true,
+        "beskrivning": "Central hållplats med väderskydd"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [18.058, 59.326]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 7,
+      "properties": {
+        "namn": "Torg Mötesplats",
+        "typ": "Torg",
+        "area_m2": 1500,
+        "sittplatser": 25,
+        "konst": true,
+        "beskrivning": "Centralt torg för möten och evenemang"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[18.056, 59.324], [18.059, 59.324], [18.059, 59.326], [18.056, 59.326], [18.056, 59.324]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 8,
+      "properties": {
+        "namn": "Förskola Solgläntan",
+        "typ": "Förskola",
+        "kapacitet": 80,
+        "utemiljö_m2": 2000,
+        "beskrivning": "Förskola med naturinriktad pedagogik"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [18.065, 59.328]
+      }
+    }
+  ]
+}

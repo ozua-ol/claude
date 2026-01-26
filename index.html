@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kartvisualisering - Citylab Utvärdering</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <h1><i class="fas fa-map-marked-alt"></i> Kartvisualisering</h1>
+                <span class="subtitle">Citylab Utvärderingskriterier</span>
+            </div>
+            <div class="header-right">
+                <button id="btn-upload" class="btn btn-primary">
+                    <i class="fas fa-upload"></i> Ladda GeoPackage
+                </button>
+                <input type="file" id="file-input" accept=".gpkg" multiple style="display: none;" />
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Sidebar - Citylab Criteria -->
+            <aside class="sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <h2><i class="fas fa-clipboard-check"></i> Citylab Kriterier</h2>
+                    <button id="btn-toggle-sidebar" class="btn-icon">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                </div>
+
+                <div class="sidebar-content">
+                    <!-- Search -->
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="criteria-search" placeholder="Sök kriterier..." />
+                    </div>
+
+                    <!-- Progress Overview -->
+                    <div class="progress-overview">
+                        <h3>Översikt</h3>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" id="total-progress"></div>
+                        </div>
+                        <span class="progress-text" id="progress-text">0 av 0 kriterier uppfyllda</span>
+                    </div>
+
+                    <!-- Criteria Categories -->
+                    <div class="criteria-categories" id="criteria-categories">
+                        <!-- Categories will be populated by JavaScript -->
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Map Container -->
+            <div class="map-section">
+                <div id="map"></div>
+
+                <!-- Map Controls -->
+                <div class="map-controls">
+                    <button id="btn-zoom-in" class="btn-map" title="Zooma in">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <button id="btn-zoom-out" class="btn-map" title="Zooma ut">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <button id="btn-locate" class="btn-map" title="Min position">
+                        <i class="fas fa-crosshairs"></i>
+                    </button>
+                    <button id="btn-fullscreen" class="btn-map" title="Helskärm">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                </div>
+
+                <!-- Layer Control Panel -->
+                <div class="layer-panel" id="layer-panel">
+                    <div class="layer-panel-header">
+                        <h3><i class="fas fa-layer-group"></i> Lager</h3>
+                        <button id="btn-toggle-layers" class="btn-icon">
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                    </div>
+                    <div class="layer-list" id="layer-list">
+                        <div class="layer-item">
+                            <input type="checkbox" id="layer-base" checked />
+                            <label for="layer-base">
+                                <i class="fas fa-map"></i> Bakgrundskarta
+                            </label>
+                        </div>
+                        <!-- Dynamic layers will be added here -->
+                    </div>
+                </div>
+
+                <!-- Legend -->
+                <div class="legend" id="legend">
+                    <div class="legend-header">
+                        <h3><i class="fas fa-palette"></i> Teckenförklaring</h3>
+                    </div>
+                    <div class="legend-content" id="legend-content">
+                        <!-- Legend items will be populated dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel - Feature Info -->
+            <aside class="info-panel" id="info-panel">
+                <div class="info-panel-header">
+                    <h2><i class="fas fa-info-circle"></i> Information</h2>
+                    <button id="btn-close-info" class="btn-icon">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="info-panel-content" id="info-content">
+                    <p class="placeholder-text">Klicka på ett objekt i kartan för att se information.</p>
+                </div>
+
+                <!-- Link to Citylab Criteria -->
+                <div class="criteria-link-section" id="criteria-link-section" style="display: none;">
+                    <h3>Koppla till Citylab-kriterium</h3>
+                    <select id="criteria-select">
+                        <option value="">Välj kriterium...</option>
+                    </select>
+                    <button id="btn-link-criteria" class="btn btn-secondary">
+                        <i class="fas fa-link"></i> Koppla
+                    </button>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Status Bar -->
+        <footer class="status-bar">
+            <div class="status-left">
+                <span id="status-coordinates">Koordinater: -</span>
+                <span id="status-zoom">Zoom: -</span>
+            </div>
+            <div class="status-right">
+                <span id="status-layers">0 lager laddade</span>
+                <span id="status-features">0 objekt</span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modal for Criteria Details -->
+    <div class="modal" id="criteria-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Kriterium</h2>
+                <button class="btn-icon" id="btn-close-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Content populated dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="btn-modal-cancel">Stäng</button>
+                <button class="btn btn-primary" id="btn-modal-save">Spara</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <span>Laddar...</span>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/sql.js@1.8.0/dist/sql-wasm.js"></script>
+    <script src="js/citylab.js"></script>
+    <script src="js/geopackage.js"></script>
+    <script src="js/map.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
