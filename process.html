@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Samhällsbyggnadsprocessen - Informationsflöden</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link rel="stylesheet" href="css/process.css" />
+</head>
+<body>
+    <div class="app-container">
+        <header class="header">
+            <div class="header-left">
+                <h1><i class="fas fa-project-diagram"></i> Samhällsbyggnadsprocessen</h1>
+                <span class="subtitle">Informationsflöden och processer</span>
+            </div>
+            <nav class="header-nav">
+                <button id="btn-view-flow" class="btn btn-nav active" data-view="flow">
+                    <i class="fas fa-project-diagram"></i> Processflöde
+                </button>
+                <button id="btn-view-data" class="btn btn-nav" data-view="data">
+                    <i class="fas fa-database"></i> Informationsmängder
+                </button>
+            </nav>
+            <div class="header-right">
+                <a href="index.html" class="btn btn-secondary" style="text-decoration:none">
+                    <i class="fas fa-map"></i> Karta
+                </a>
+            </div>
+        </header>
+
+        <!-- Flow View -->
+        <div id="view-flow" class="view active">
+            <div class="flow-toolbar">
+                <button id="btn-zoom-in" class="btn btn-sm"><i class="fas fa-plus"></i></button>
+                <button id="btn-zoom-out" class="btn btn-sm"><i class="fas fa-minus"></i></button>
+                <button id="btn-zoom-fit" class="btn btn-sm"><i class="fas fa-expand"></i> Anpassa</button>
+                <span class="toolbar-sep"></span>
+                <button id="btn-add-process" class="btn btn-sm btn-primary"><i class="fas fa-plus-circle"></i> Ny process</button>
+                <button id="btn-add-dataset" class="btn btn-sm btn-primary"><i class="fas fa-database"></i> Ny informationsmängd</button>
+            </div>
+            <canvas id="flow-canvas"></canvas>
+        </div>
+
+        <!-- Data List View -->
+        <div id="view-data" class="view">
+            <div class="data-toolbar">
+                <input type="text" id="data-search" placeholder="Sök informationsmängder..." class="input-search" />
+                <select id="data-sort" class="input-select">
+                    <option value="name">Namn</option>
+                    <option value="type">Typ</option>
+                    <option value="source">Källa</option>
+                </select>
+                <select id="data-filter-type" class="input-select">
+                    <option value="">Alla typer</option>
+                    <option value="input">Indata</option>
+                    <option value="output">Utdata</option>
+                    <option value="both">Både in och ut</option>
+                </select>
+            </div>
+            <div id="data-list" class="data-list"></div>
+        </div>
+
+        <!-- Detail Panel (slides in from right) -->
+        <div id="detail-panel" class="detail-panel">
+            <div class="detail-header">
+                <h2 id="detail-title">Detaljer</h2>
+                <button id="btn-close-detail" class="btn btn-icon"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="detail-content" class="detail-content"></div>
+        </div>
+
+        <!-- Modal for adding/editing -->
+        <div id="modal-overlay" class="modal-overlay">
+            <div id="modal" class="modal">
+                <div class="modal-header">
+                    <h3 id="modal-title"></h3>
+                    <button id="btn-close-modal" class="btn btn-icon"><i class="fas fa-times"></i></button>
+                </div>
+                <div id="modal-body" class="modal-body"></div>
+                <div class="modal-footer">
+                    <button id="btn-modal-cancel" class="btn btn-secondary">Avbryt</button>
+                    <button id="btn-modal-save" class="btn btn-primary">Spara</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/process-data.js"></script>
+    <script src="js/process-renderer.js"></script>
+    <script src="js/process-app.js"></script>
+</body>
+</html>
