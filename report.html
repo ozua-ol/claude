@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resvaneundersökning Östergötland 2023 – Interaktiv rapport</title>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <!-- App styles -->
+  <link rel="stylesheet" href="css/report.css" />
+</head>
+<body>
+
+  <!-- ═══ HEADER ═══ -->
+  <header class="report-header">
+    <button class="report-header__nav-toggle" id="navToggle" aria-label="Öppna meny">
+      <i class="fas fa-bars"></i>
+    </button>
+    <span class="report-header__title">Resvaneundersökning Östergötland 2023</span>
+    <span class="report-header__subtitle">Interaktiv rapport för hållbar stadsplanering</span>
+    <div class="report-header__links">
+      <a href="index.html"><i class="fas fa-map"></i> Karta</a>
+      <a href="process.html"><i class="fas fa-diagram-project"></i> Process</a>
+    </div>
+  </header>
+
+  <!-- ═══ SIDEBAR NAVIGATION ═══ -->
+  <nav class="report-nav" id="reportNav">
+    <div class="report-nav__label">Innehåll</div>
+    <ul>
+      <li><a href="#sammanfattning" class="active">
+        <span class="nav-icon"><i class="fas fa-gauge-high"></i></span> Sammanfattning
+      </a></li>
+      <li><a href="#fardmedel">
+        <span class="nav-icon"><i class="fas fa-car"></i></span> Färdmedelsfördelning
+      </a></li>
+      <li><a href="#kommuner">
+        <span class="nav-icon"><i class="fas fa-map-location-dot"></i></span> Kommunöversikt
+      </a></li>
+      <li><a href="#arenden">
+        <span class="nav-icon"><i class="fas fa-briefcase"></i></span> Resor per ärende
+      </a></li>
+      <li><a href="#avstand">
+        <span class="nav-icon"><i class="fas fa-route"></i></span> Avstånd &amp; färdsätt
+      </a></li>
+      <li><a href="#alder">
+        <span class="nav-icon"><i class="fas fa-users"></i></span> Åldersfördelning
+      </a></li>
+      <li><a href="#trender">
+        <span class="nav-icon"><i class="fas fa-chart-line"></i></span> Trender över tid
+      </a></li>
+      <li><a href="#hallbarhet">
+        <span class="nav-icon"><i class="fas fa-leaf"></i></span> Hållbar mobilitet
+      </a></li>
+      <li><a href="#metod">
+        <span class="nav-icon"><i class="fas fa-flask"></i></span> Metod
+      </a></li>
+    </ul>
+    <div class="report-nav__progress">
+      <div class="report-nav__progress-label">Läsframsteg</div>
+      <div class="report-nav__progress-bar">
+        <div class="report-nav__progress-fill" id="progressFill"></div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ═══ MAIN CONTENT ═══ -->
+  <main class="report-main" id="reportMain">
+
+    <!-- ── 1. SAMMANFATTNING ───────────────────────── -->
+    <section class="report-section" id="sammanfattning">
+      <div class="section-header">
+        <span class="section-header__number">Kapitel 1</span>
+        <h2>Sammanfattning</h2>
+        <p>Översikt av resvanorna i Östergötlands 13 kommuner baserat på enkätdata från 2023.</p>
+      </div>
+
+      <div class="kpi-grid" id="kpiGrid">
+        <!-- Filled by JS -->
+      </div>
+
+      <div class="prose">
+        <p>
+          Resvaneundersökningen 2023 visar att <strong>bilen fortfarande dominerar</strong> som färdmedel i
+          Östergötland, men att andelen hållbara resor – kollektivtrafik, cykel och gång – skiljer sig
+          markant mellan kommunerna. I de två största städerna, Linköping och Norrköping, är den
+          hållbara andelen betydligt högre än i de mindre kommunerna.
+          <span class="ref-link" data-target="viz-mode-region"><i class="fas fa-chart-pie"></i> Se diagram 1</span>
+        </p>
+        <p>
+          Totalt genomfördes undersökningen under perioden september–november 2023 med ett
+          stratifierat urval av invånare i åldern 16–84 år. Resultaten ger en samlad bild av
+          hur östgötarna förflyttar sig i vardagen och utgör ett viktigt underlag för den regionala
+          transportplaneringen.
+          <span class="ref-link" data-target="metod"><i class="fas fa-flask"></i> Läs om metod</span>
+        </p>
+      </div>
+
+      <div class="insight-box insight-box--success">
+        <span class="insight-box__icon"><i class="fas fa-arrow-trend-up"></i></span>
+        <div class="insight-box__content">
+          <strong>Linköping leder.</strong> Med 44 % hållbara resor ligger Linköping i topp bland
+          länets kommuner, drivet av hög cykel- och kollektivtrafikandel.
+        </div>
+      </div>
+
+      <div class="insight-box insight-box--warning">
+        <span class="insight-box__icon"><i class="fas fa-triangle-exclamation"></i></span>
+        <div class="insight-box__content">
+          <strong>Stor skillnad stad–land.</strong> Mindre kommuner som Ydre och Boxholm har
+          under 20 % hållbara resor, vilket speglar längre avstånd och begränsat kollektivtrafikutbud.
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 2. FÄRDMEDELSFÖRDELNING ─────────────────── -->
+    <section class="report-section" id="fardmedel">
+      <div class="section-header">
+        <span class="section-header__number">Kapitel 2</span>
+        <h2>Färdmedelsfördelning</h2>
+        <p>Hur fördelar sig resorna mellan olika färdmedel – i regionen och per kommun?</p>
+      </div>
+
+      <div class="prose">
+        <p>
+          I hela Östergötland görs majoriteten av resorna med bil. Andelen varierar dock från drygt
+          50 % i Linköping till närmare 80 % i Ydre.
+          <strong>Kollektivtrafiken</strong> står för cirka 10 % av alla resor regionalt, medan cykeln
+          och gång tillsammans svarar för ungefär en fjärdedel.
+          <span class="ref-link" data-target="viz-mode-region"><i class="fas fa-chart-pie"></i> Se diagram 1</span>
+        </p>
+      </div>
+
+      <div class="mode-legend" id="modeLegend">
+        <!-- Filled by JS -->
+      </div>
+
+      <div class="chart-grid">
+        <div class="viz-container" id="viz-mode-region">
+          <div class="viz-header">
+            <div>
+              <span class="viz-ref">Diagram 1</span>
+              <div class="viz-title">Färdmedelsfördelning – Regionen</div>
+            </div>
+            <div class="chart-controls" data-chart="modeRegion">
+              <button class="chart-type-btn active" data-type="doughnut"><i class="fas fa-chart-pie"></i> Cirkel</button>
+              <button class="chart-type-btn" data-type="bar"><i class="fas fa-chart-bar"></i> Stapel</button>
+              <button class="chart-type-btn" data-type="polarArea"><i class="fas fa-circle-half-stroke"></i> Polär</button>
+            </div>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="chartModeRegion"></canvas>
+          </div>
+          <div class="viz-caption">Andel resor per färdmedel, viktat med befolkning. Källa: RVU Östergötland 2023.</div>
+        </div>
+
+        <div class="viz-container" id="viz-mode-kommun">
+          <div class="viz-header">
+            <div>
+              <span class="viz-ref">Diagram 2</span>
+              <div class="viz-title">Färdmedelsfördelning per kommun</div>
+            </div>
+            <div class="chart-controls" data-chart="modeKommun">
+              <button class="chart-type-btn active" data-type="bar"><i class="fas fa-chart-bar"></i> Stapel</button>
+              <button class="chart-type-btn" data-type="bar-horiz"><i class="fas fa-bars"></i> Horisontell</button>
+              <button class="chart-type-btn" data-type="radar"><i class="fas fa-diagram-project"></i> Radar</button>
+            </div>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="chartModeKommun"></canvas>
+          </div>
+          <div class="viz-caption">Jämförelse mellan samtliga 13 kommuner. Klicka på en kommun i kartan eller tabellen för att markera.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 3. KOMMUNÖVERSIKT (MAP + TABLE) ─────────── -->
+    <section class="report-section" id="kommuner">
+      <div class="section-header">
+        <span class="section-header__number">Kapitel 3</span>
+        <h2>Kommunöversikt</h2>
+        <p>Utforska data per kommun genom karta och tabell. Klicka på en kommun i kartan eller tabellen för att filtrera diagram.</p>
+      </div>
+
+      <div class="prose">
+        <p>
+          Kartan nedan visar varje kommuns centrum med en cirkel vars storlek motsvarar befolkning
+          och vars färg anger den hållbara resandelen (grönt = hög, rött = låg). Tabellen
+          kan sorteras genom att klicka på kolumnrubriker. Val i karta och tabell synkroniseras
+          med diagrammen i övriga kapitel.
+        </p>
+      </div>
+
+      <!-- Selection bar -->
+      <div class="filter-bar" id="selectionBar">
+        <span class="filter-bar__label"><i class="fas fa-filter"></i> Urval:</span>
+        <div class="active-selection" id="activeSelection">
+          <span class="selection-badge" style="opacity:0.5;">Alla kommuner</span>
+        </div>
+        <button class="btn-clear-selection" id="btnClearSelection">Rensa urval</button>
+      </div>
+
+      <div class="split-layout split-layout--map-left">
+        <div class="map-col">
+          <div class="viz-container">
+            <div class="viz-header">
+              <div>
+                <span class="viz-ref">Karta 1</span>
+                <div class="viz-title">Kommuner i Östergötland</div>
+              </div>
+            </div>
+            <div class="map-container" id="reportMap"></div>
+            <div class="viz-caption">Cirkelstorlek = befolkning. Färg = andel hållbara resor (grönt = hög).</div>
+          </div>
+        </div>
+        <div class="data-col">
+          <div class="viz-container">
+            <div class="viz-header">
+              <div>
+                <span class="viz-ref">Tabell 1</span>
+                <div class="viz-title">Kommundata</div>
+              </div>
+            </div>
+            <div class="data-table-wrapper" style="max-height:500px;overflow-y:auto;">
+              <table class="data-table" id="municipalityTable">
+                <thead>
+                  <tr>
+                    <th data-sort="name">Kommun <span class="sort-icon"><i class="fas fa-sort"></i></span></th>
+                    <th data-sort="population">Befolkning <span class="sort-icon"><i class="fas fa-sort"></i></span></th>
+                    <th data-sort="mode.bil">Bil % <span class="sort-icon"><i class="fas fa-sort"></i></span></th>
+                    <th data-sort="mode.kollektivtrafik">Koll. % <span class="sort-icon"><i class="fas fa-sort"></i></span></th>
+                    <th data-sort="mode.cykel">Cykel % <span class="sort-icon"><i class="fas fa-sort"></i></span></th>
+                    <th data-sort="mode.gang">Gång % <span class="sort-icon"><i class="fas fa-sort"></i></span></th>
+                    <th data-sort="sustainableShare">Hållbart % <span class="sort-icon"><i class="fas fa-sort"></i></span></th>
+                  </tr>
+                </thead>
+                <tbody id="municipalityTableBody">
+                  <!-- Filled by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 4. RESOR PER ÄRENDE ─────────────────────── -->
+    <section class="report-section" id="arenden">
+      <div class="section-header">
+        <span class="section-header__number">Kapitel 4</span>
+        <h2>Resor per ärende</h2>
+        <p>Vilka typer av ärenden genererar mest resor, och hur skiljer det sig mellan kommuner?</p>
+      </div>
+
+      <div class="prose">
+        <p>
+          Arbetsresor utgör den största kategorin och står för ungefär 30 % av alla resor.
+          Inköpsresor kommer på andra plats med drygt 22 %. Mönstret skiljer sig dock åt
+          beroende på kommun – i mindre kommuner utgör inköps- och fritidsresor en
+          relativt större andel.
+          <span class="ref-link" data-target="viz-purpose"><i class="fas fa-chart-bar"></i> Se diagram 3</span>
+        </p>
+      </div>
+
+      <div class="chart-grid">
+        <div class="viz-container" id="viz-purpose">
+          <div class="viz-header">
+            <div>
+              <span class="viz-ref">Diagram 3</span>
+              <div class="viz-title">Reseärenden – Region / Vald kommun</div>
+            </div>
+            <div class="chart-controls" data-chart="purpose">
+              <button class="chart-type-btn active" data-type="bar"><i class="fas fa-chart-bar"></i> Stapel</button>
+              <button class="chart-type-btn" data-type="doughnut"><i class="fas fa-chart-pie"></i> Cirkel</button>
+              <button class="chart-type-btn" data-type="radar"><i class="fas fa-diagram-project"></i> Radar</button>
+            </div>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="chartPurpose"></canvas>
+          </div>
+          <div class="viz-caption">Andel resor per ärendekategori. Välj kommun i karta/tabell för att jämföra.</div>
+        </div>
+
+        <div class="viz-container" id="viz-purpose-kommun">
+          <div class="viz-header">
+            <div>
+              <span class="viz-ref">Diagram 4</span>
+              <div class="viz-title">Reseärenden per kommun</div>
+            </div>
+            <div class="chart-controls" data-chart="purposeKommun">
+              <button class="chart-type-btn active" data-type="bar"><i class="fas fa-chart-bar"></i> Stapel</button>
+              <button class="chart-type-btn" data-type="bar-horiz"><i class="fas fa-bars"></i> Horisontell</button>
+            </div>
+          </div>
+          <div class="filter-bar">
+            <span class="filter-bar__label">Ärende:</span>
+            <select class="filter-select" id="purposeSelect">
+              <option value="arbete">Arbete</option>
+              <option value="utbildning">Utbildning</option>
+              <option value="inkop">Inköp</option>
+              <option value="fritid">Fritid & rekreation</option>
+              <option value="service">Service & vård</option>
+            </select>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="chartPurposeKommun"></canvas>
+          </div>
+          <div class="viz-caption">Valt ärendes andel per kommun. Använd rullgardinsmenyn för att byta ärende.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 5. AVSTÅND & FÄRDSÄTT ───────────────────── -->
+    <section class="report-section" id="avstand">
+      <div class="section-header">
+        <span class="section-header__number">Kapitel 5</span>
+        <h2>Avstånd &amp; färdsätt</h2>
+        <p>Hur påverkar resavståndet valet av färdmedel?</p>
+      </div>
+
+      <div class="prose">
+        <p>
+          Resavståndet är en avgörande faktor för färdmedelsvalet. Vid korta avstånd under 1 km
+          dominerar <strong>gång</strong> helt, medan <strong>cykel</strong> är vanligast i intervallet
+          1–5 km. Vid längre avstånd tar bilen över, men <strong>kollektivtrafiken</strong> når sin
+          högsta andel vid resor över 50 km.
+          <span class="ref-link" data-target="viz-distance"><i class="fas fa-chart-bar"></i> Se diagram 5</span>
+        </p>
+      </div>
+
+      <div class="chart-grid">
+        <div class="viz-container" id="viz-distance">
+          <div class="viz-header">
+            <div>
+              <span class="viz-ref">Diagram 5</span>
+              <div class="viz-title">Färdmedelsval per avståndsklass</div>
+            </div>
+            <div class="chart-controls" data-chart="distance">
+              <button class="chart-type-btn active" data-type="bar"><i class="fas fa-chart-bar"></i> Stapel</button>
+              <button class="chart-type-btn" data-type="bar-stacked"><i class="fas fa-layer-group"></i> Stapel (staplad)</button>
+              <button class="chart-type-btn" data-type="line"><i class="fas fa-chart-line"></i> Linje</button>
+            </div>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="chartDistance"></canvas>
+          </div>
+          <div class="viz-caption">Andel per färdmedel i respektive avståndsklass. Regionalt genomsnitt.</div>
+        </div>
+
+        <div class="viz-container" id="viz-dist-distribution">
+          <div class="viz-header">
+            <div>
+              <span class="viz-ref">Diagram 6</span>
+              <div class="viz-title">Fördelning av resor per avståndsklass</div>
+            </div>
+            <div class="chart-controls" data-chart="distDistribution">
+              <button class="chart-type-btn active" data-type="bar"><i class="fas fa-chart-bar"></i> Stapel</button>
+              <button class="chart-type-btn" data-type="doughnut"><i class="fas fa-chart-pie"></i> Cirkel</button>
+            </div>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="chartDistDistribution"></canvas>
+          </div>
+          <div class="viz-caption">Hur stor andel av samtliga resor som faller i varje avståndsklass.</div>
+        </div>
+      </div>
+
+      <div class="insight-box insight-box--info">
+        <span class="insight-box__icon"><i class="fas fa-bicycle"></i></span>
+        <div class="insight-box__content">
+          <strong>Potential för cykel.</strong> 37 % av alla resor är kortare än 5 km – avstånd där cykel
+          kan konkurrera med bilen. Att stärka cykelinfrastrukturen i detta intervall har stor potential
+          att öka den hållbara resandelen.
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 6. ÅLDERSFÖRDELNING ─────────────────────── -->
+    <section class="report-section" id="alder">
+      <div class="section-header">
+        <span class="section-header__number">Kapitel 6</span>
+        <h2>Åldersfördelning</h2>
+        <p>Hur ser färdmedelsvalet ut i olika åldersgrupper?</p>
+      </div>
+
+      <div class="prose">
+        <p>
+          Unga (16–24 år) har den lägsta bilandelen och den högsta andelen kollektivtrafik,
+          vilket främst förklaras av att många ännu inte har körkort eller egen bil.
+          Bilandelen toppar i åldersgruppen 45–54 år med 68 %. Bland de äldsta (75–84)
+          ökar gångandelen markant medan bilanvändningen sjunker.
+          <span class="ref-link" data-target="viz-age"><i class="fas fa-chart-bar"></i> Se diagram 7</span>
+        </p>
+      </div>
+
+      <div class="viz-container" id="viz-age">
+        <div class="viz-header">
+          <div>
+            <span class="viz-ref">Diagram 7</span>
+            <div class="viz-title">Färdmedelsval per åldersgrupp</div>
+          </div>
+          <div class="chart-controls" data-chart="age">
+            <button class="chart-type-btn active" data-type="bar-stacked"><i class="fas fa-layer-group"></i> Staplad</button>
+            <button class="chart-type-btn" data-type="bar"><i class="fas fa-chart-bar"></i> Grupperad</button>
+            <button class="chart-type-btn" data-type="line"><i class="fas fa-chart-line"></i> Linje</button>
+          </div>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="chartAge"></canvas>
+        </div>
+        <div class="viz-caption">Färdmedelsfördelning per åldersgrupp (%). Regionalt genomsnitt.</div>
+      </div>
+
+      <div class="insight-box insight-box--danger">
+        <span class="insight-box__icon"><i class="fas fa-car-side"></i></span>
+        <div class="insight-box__content">
+          <strong>Bilberoendet ökar med åldern.</strong> Mellan 25 och 64 år reser majoriteten med bil.
+          Att erbjuda attraktiva alternativ för denna åldersgrupp – exempelvis
+          snabbare kollektivtrafik och säkra cykelvägar – är centralt för att nå hållbarhetsmålen.
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 7. TRENDER ÖVER TID ─────────────────────── -->
+    <section class="report-section" id="trender">
+      <div class="section-header">
+        <span class="section-header__number">Kapitel 7</span>
+        <h2>Trender över tid</h2>
+        <p>Hur har resvanorna förändrats sedan 2015?</p>
+      </div>
+
+      <div class="prose">
+        <p>
+          Den hållbara resandelen ökade stadigt från 32 % (2015) till 35 % (2019). Pandemin
+          2020–2021 bröt trenden med ett tapp till 30 %, främst drivet av minskat
+          kollektivtrafikresande. År 2023 har andelen återhämtat sig till 34 % men når ännu
+          inte tillbaka till 2019 års nivå.
+          <span class="ref-link" data-target="viz-trend-region"><i class="fas fa-chart-line"></i> Se diagram 8</span>
+        </p>
+        <p>
+          På kommunnivå syns samma mönster men med olika hastighet. Linköping har
+          haft en starkare återhämtning än regionsnittet, medan flera mindre kommuner
+          knappt har återhämtat sig efter pandemin.
+          <span class="ref-link" data-target="viz-trend-kommun"><i class="fas fa-chart-line"></i> Se diagram 9</span>
+        </p>
+      </div>
+
+      <div class="chart-grid">
+        <div class="viz-container" id="viz-trend-region">
+          <div class="viz-header">
+            <div>
+              <span class="viz-ref">Diagram 8</span>
+              <div class="viz-title">Hållbar resandel – Regionen</div>
+            </div>
+            <div class="chart-controls" data-chart="trendRegion">
+              <button class="chart-type-btn active" data-type="line"><i class="fas fa-chart-line"></i> Linje</button>
+              <button class="chart-type-btn" data-type="bar"><i class="fas fa-chart-bar"></i> Stapel</button>
+            </div>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="chartTrendRegion"></canvas>
+          </div>
+          <div class="viz-caption">Andel hållbara resor (kollektivtrafik + cykel + gång) i regionen.</div>
+        </div>
+
+        <div class="viz-container" id="viz-trend-kommun">
+          <div class="viz-header">
+            <div>
+              <span class="viz-ref">Diagram 9</span>
+              <div class="viz-title">Hållbar resandel – Per kommun</div>
+            </div>
+            <div class="chart-controls" data-chart="trendKommun">
+              <button class="chart-type-btn active" data-type="line"><i class="fas fa-chart-line"></i> Linje</button>
+              <button class="chart-type-btn" data-type="bar"><i class="fas fa-chart-bar"></i> Stapel</button>
+            </div>
+          </div>
+          <div class="filter-bar">
+            <span class="filter-bar__label">Kommuner:</span>
+            <select class="filter-select" id="trendKommunSelect" multiple size="4" style="height:auto;">
+              <!-- Filled by JS -->
+            </select>
+            <span style="font-size:var(--text-sm);color:var(--clr-text-muted);">Ctrl+klick för flerval</span>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="chartTrendKommun"></canvas>
+          </div>
+          <div class="viz-caption">Hållbar resandel per vald kommun över tid.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 8. HÅLLBAR MOBILITET ────────────────────── -->
+    <section class="report-section" id="hallbarhet">
+      <div class="section-header">
+        <span class="section-header__number">Kapitel 8</span>
+        <h2>Hållbar mobilitet – analys och rekommendationer</h2>
+        <p>Sammanfattande analys och förslag på åtgärder för att öka andelen hållbara resor.</p>
+      </div>
+
+      <div class="prose">
+        <p>
+          Östergötlands resvanor präglas av en tydlig urban–rural klyfta. I Linköping och
+          Norrköping finns förutsättningar att nå höga hållbarhetsandelar tack vare
+          befolkningstäthet, kollektivtrafikutbud och cykelinfrastruktur. I de mindre
+          kommunerna är bilen ofta det enda praktiska alternativet.
+        </p>
+        <p>
+          Tre strategiska områden utmärker sig som särskilt viktiga:
+        </p>
+      </div>
+
+      <div class="insight-box insight-box--info">
+        <span class="insight-box__icon"><i class="fas fa-bus"></i></span>
+        <div class="insight-box__content">
+          <strong>1. Stärk kollektivtrafiken i stråken.</strong> Pendlingsresorna mellan Linköping,
+          Norrköping, Motala och Mjölby har stor potential att flyttas från bil till
+          kollektivtrafik med snabbare turtäthet och bättre anslutningar.
+        </div>
+      </div>
+
+      <div class="insight-box insight-box--success">
+        <span class="insight-box__icon"><i class="fas fa-bicycle"></i></span>
+        <div class="insight-box__content">
+          <strong>2. Bygg ut cykelinfrastrukturen för korta resor.</strong> Med 37 % av resorna under
+          5 km finns en stor outnyttjad potential. Separerade cykelbanor, säker
+          cykelparkering och cykeldelningssystem bör prioriteras.
+        </div>
+      </div>
+
+      <div class="insight-box insight-box--warning">
+        <span class="insight-box__icon"><i class="fas fa-bolt"></i></span>
+        <div class="insight-box__content">
+          <strong>3. Omställning av bilresorna.</strong> Där bilen förblir nödvändig – främst i
+          glesbygd – bör fokus ligga på elektrifiering, samåkning och
+          mobilitetshubbar som komplement till kollektivtrafiken.
+        </div>
+      </div>
+
+      <div class="viz-container" id="viz-sustainability-compare">
+        <div class="viz-header">
+          <div>
+            <span class="viz-ref">Diagram 10</span>
+            <div class="viz-title">Hållbar resandel – kommunranking</div>
+          </div>
+          <div class="chart-controls" data-chart="sustainRank">
+            <button class="chart-type-btn active" data-type="bar-horiz"><i class="fas fa-bars"></i> Horisontell</button>
+            <button class="chart-type-btn" data-type="bar"><i class="fas fa-chart-bar"></i> Vertikal</button>
+          </div>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="chartSustainRank"></canvas>
+        </div>
+        <div class="viz-caption">Kommunerna rankade efter andel hållbara resor (kollektivtrafik + cykel + gång).</div>
+      </div>
+    </section>
+
+    <!-- ── 9. METOD ────────────────────────────────── -->
+    <section class="report-section" id="metod">
+      <div class="section-header">
+        <span class="section-header__number">Kapitel 9</span>
+        <h2>Metod</h2>
+        <p>Om undersökningens upplägg, urval och genomförande.</p>
+      </div>
+
+      <div class="method-grid" id="methodGrid">
+        <!-- Filled by JS -->
+      </div>
+
+      <div class="prose" style="margin-top:var(--space-xl);">
+        <p>
+          Undersökningen genomfördes som en kombinerad enkät (webb och papper) under
+          perioden september–november 2023. Urvalet stratifierades per kommun, åldersgrupp
+          och kön för att säkerställa representativitet. Resultaten har viktats för att
+          kompensera för skillnader i svarsfrekvens.
+        </p>
+        <p>
+          <strong>Datakvalitet:</strong> Det sammanlagda urvalet om 5 295 respondenter ger en
+          statistisk osäkerhet på ±1–3 procentenheter på regional nivå. För enskilda
+          mindre kommuner kan osäkerheten vara större (±5–8 procentenheter).
+        </p>
+        <p>
+          <em>Anmärkning: Denna rapport är en interaktiv mall med syntetiska data inspirerade
+          av Region Östergötlands resvaneundersökning 2023. Faktiska värden kan avvika.</em>
+        </p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ═══ SCROLL TO TOP ═══ -->
+  <button class="scroll-to-top" id="scrollToTop" aria-label="Tillbaka till toppen">
+    <i class="fas fa-arrow-up"></i>
+  </button>
+
+  <!-- ═══ SCRIPTS ═══ -->
+  <script src="js/report-data.js"></script>
+  <script src="js/report-app.js"></script>
+</body>
+</html>
